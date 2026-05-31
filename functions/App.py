@@ -1,8 +1,8 @@
 import tkinter as tk
 import pyperclip
 from tkinter import messagebox, ttk
-from logic import PasswordsConfig, Functionality
-from config import *
+from .logic import PasswordsConfig, Functionality
+from .config import *
 
 class App:
     def __init__(self, root, fernet = None):
@@ -86,6 +86,7 @@ class App:
         self.root.bind('<Control-a>', self.add_password_window)
         self.root.bind('<Control-x>', self.delete_password_window)
         self.root.bind('<Control-r>', self.load_table)
+        self.root.bind('<Control-e>', self.hs_load_table)
 
         # Initialize table
         self.load_table(self.isHide)

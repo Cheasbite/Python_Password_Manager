@@ -1,9 +1,9 @@
 import tkinter as tk
 import os
-from config import *
-from logic import Decryption
-from App import App
-from Auth import Auth
+from functions.config import *
+from functions.logic import Decryption
+from functions.App import App
+from functions.Auth import Auth
 
 def main():
     root = tk.Tk()

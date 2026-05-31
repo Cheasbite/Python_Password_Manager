@@ -6,7 +6,7 @@ from cryptography.fernet import Fernet
 from cryptography.hazmat.primitives.kdf.pbkdf2 import PBKDF2HMAC
 from cryptography.hazmat.primitives import hashes
 import base64
-from config import *
+from .config import *
 
 class pwd2key:
     def __init__(self):
@@ -29,9 +29,9 @@ class pwd2key:
         salt = self.load_salt()
         kdf = PBKDF2HMAC(
             algorithm=hashes.SHA256(),
-            length=32,
+            length=PBKDF2HMAC_Lenght,
             salt=salt,
-            iterations=480000,
+            iterations=PBKDF2HMAC_iterations,
         )
         self.key = base64.urlsafe_b64encode(kdf.derive(master_password.encode()))
         return Fernet(self.key)
@@ -65,16 +65,12 @@ class PasswordsConfig:
         with open(DATA_FILE, "w") as file:
             json.dump(passwords, file, indent=4, sort_keys=True)
 
-        #self.load_passwords()
-
     def del_passwords(self, passwords):
         data = self.load_passwords()
         del data[passwords]
 
         with open(DATA_FILE, 'w') as file:
             json.dump(data, file, indent=4, sort_keys=True)
-
-        #self.load_passwords()
 
 class Functionality:
     def __init__(self):

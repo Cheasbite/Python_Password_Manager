@@ -1,7 +1,7 @@
 import os
 
-# Get the directory path
-scriptPath = os.path.dirname(__file__)
+# Get the root directory path
+scriptPath = os.path.dirname(os.path.dirname(__file__))
 
 # The size of the main window
 WINDOW_WIDTH = 600      # Set the main window width
@@ -16,6 +16,11 @@ USE_UPPER_CHAR = True   # Should the password include capital letters
 USE_SYMBOLS = True      # Should the password include symbols
 USE_DIGITS = True       # Should the password include numbers
 GENERATED_LENGTH = 15   # How long should the password be
+
+# Security
+osUrandomSize = 16              # How many bytes should the os generate (chunk size is not recommended)
+PBKDF2HMAC_Lenght = 32          # How long should the encryption length be
+PBKDF2HMAC_iterations = 480000  # How many time should the encryption be hash
 
 # Fonts family and Fonts size configurations (Affect both password prompt window and main window)
 FONTS = "Arial"     # Set your own font family here

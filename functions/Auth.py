@@ -1,6 +1,6 @@
 import tkinter as tk
-from logic import pwd2key, Decryption
-from config import *
+from .logic import pwd2key, Decryption
+from .config import *
 
 class Auth:
     def __init__(self, root):
