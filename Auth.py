@@ -101,26 +101,54 @@ class Auth:
             entered = pwd_entry.get()
 
             if len(entered) == 0:
-                error_label.config(text="Incorrect password, try again.", font=self.custom_font)
+                error_label.config(text="Password Cannot be None.", font=self.custom_font)
                 pwd_entry.delete(0, tk.END)
                 return None
 
-            # Generate the salt
-            pwd2key().generate_salt()
+            confirmation = tk.Toplevel(prompt)
+            confirmation.title("Confirmation")
+            confirmation.resizable(False, False)
+            confirmation.grab_set()
+            confirmation.focus_set()
 
-            try:
-                self.fernet = pwd2key().derive_key(entered)
+            tk.Label(confirmation,
+                     text=f"Are you sure [{entered}] will be you Master Password?",
+                     font=(FONTS, FONTS_SIZE)
+                     ).grid(row=0, column=0, columnspan=2, padx=(45, 20), pady=(30, 20), sticky="w")
 
-                with open(DATA_FILE, "rb") as f:
-                    jsonbyte = f.read()
+            tk.Label(confirmation,
+                     text="Remember, you MUST remember this password.",
+                     fg="red",
+                     font=(FONTS, FONTS_SIZE, "bold"),
+                     ).grid(row=1, column=0, padx=(40, 20), columnspan=2, sticky="w")
 
-                with open(DATA_ENC, "wb") as f:
-                    f.write(self.fernet.encrypt(jsonbyte))
+            def on_no():
+                confirmation.destroy()
 
-                prompt.destroy()
-            except Exception:
-                error_label.config(text="An error has occured, try again.", font=self.custom_font)
-                pwd_entry.delete(0, tk.END)
+            def on_yes():
+                # Generate the salt
+                pwd2key().generate_salt()
+
+                try:
+                    self.fernet = pwd2key().derive_key(entered)
+
+                    with open(DATA_FILE, "rb") as f:
+                        jsonbyte = f.read()
+
+                    with open(DATA_ENC, "wb") as f:
+                        f.write(self.fernet.encrypt(jsonbyte))
+
+                    prompt.destroy()
+                except Exception:
+                    error_label.config(text="An error has occured, try again.", font=self.custom_font)
+                    pwd_entry.delete(0, tk.END)
+
+            tk.Button(confirmation, text="No", width=8, command=on_no, bg="red", activebackground="crimson", font=self.custom_font).grid(
+                row=2, column=0, padx=(60, 5), pady=5, sticky="w"
+            )
+            tk.Button(confirmation, text="Yes", width=8, command=on_yes, bg="lime", activebackground="green", font=self.custom_font).grid(
+                row=2, column=1, padx=5, pady=5, sticky="w"
+            )
 
         create_btn = tk.Button(prompt, text="Create", command=submit)
         create_btn.pack(pady=5)
