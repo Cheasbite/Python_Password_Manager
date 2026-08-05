@@ -1,0 +1,2 @@
+The place where all the encryption keys will be stored and read.
+

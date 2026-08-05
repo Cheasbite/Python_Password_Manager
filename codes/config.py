@@ -51,7 +51,6 @@ SETTINGS_FILE = os.path.join(scriptPath, "storage", "settings.json")
 MAIN_ICON = os.path.join(scriptPath, "Icons", "lock_icon.ico")
 
 # --- Theming -----------------------------------------------------------
-# Simple light/dark palettes used by the frontend. Feel free to tweak.
 LIGHT_THEME = {
     "bg": "#f2f2f2",
     "fg": "#1a1a1a",
@@ -192,13 +191,11 @@ THEMES = {
     "Catppuccin Mocha": CATPPUCCIN_MOCHA_THEME,
 }
 
-
 def theme():
     """Return the palette dict for the current THEME_NAME, falling back to
     Light if that name isn't in THEMES for some reason (e.g. an old
     settings.json referencing a theme that got renamed/removed)."""
     return THEMES.get(THEME_NAME, LIGHT_THEME)
-
 
 def button_style(colors=None):
     """Kwargs to spread into every tk.Button(...) call so hover/pressed
@@ -236,7 +233,6 @@ def check_style(colors=None):
         "background": c["button_bg"]
     }
 
-
 def load_user_settings():
     """Overwrite the defaults above with whatever was saved from the
     Settings dialog last time (storage/settings.json). Safe to call even
@@ -270,7 +266,6 @@ def load_user_settings():
     USE_SYMBOLS = saved.get("use_symbols", USE_SYMBOLS)
     USE_DIGITS = saved.get("use_digits", USE_DIGITS)
     GENERATED_LENGTH = saved.get("generated_length", GENERATED_LENGTH)
-
 
 def save_user_settings():
     """Persist the current settings to storage/settings.json."""

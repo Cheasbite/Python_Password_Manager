@@ -5,7 +5,7 @@ from .. import config
 from ..backend.logic.functions import Functionality
 from ..backend.logic.genPwd import generatePwd
 
-MASK = "\u2022" * 10  # bullet characters, easier on the eyes than "*"
+MASK = "\u2022" * 20  # bullet characters, easier on the eyes than "*"
 
 class App:
     """The main window shown after a successful unlock. Owns the treeview
@@ -62,7 +62,6 @@ class App:
         vsb.pack(side="right", fill="y")
 
         self.tree.bind("<Double-1>", self._on_double_click)
-        self.tree.bind("<y>", self._on_yank)
 
         # --- Status bar (feedback for copy-to-clipboard, etc.) ---------
         self.status_var = tk.StringVar(value="")
@@ -76,17 +75,23 @@ class App:
         btn_frame = tk.Frame(root, bg=self.colors["bg"])
         btn_frame.pack(fill="x", padx=10, pady=10)
 
+        addVar = tk.StringVar(root, "Add")
+        editVar = tk.StringVar(root, "Edit")
+        delVar = tk.StringVar(root, "Delete")
+        self.hideVar = tk.StringVar(root, "Hide" if self.show_passwords else "Show")
+        settingVar = tk.StringVar(root, "Settings")
+
         button_specs = (
-            ("Add", self.open_add_dialog),
-            ("Edit", self.open_edit_dialog),
-            ("Delete", self.open_delete_dialog),
-            ("Hide" if self.show_passwords else "Show", self.toggle_show_hide),
-            ("Settings", self.open_settings_dialog),
+            (addVar, self.open_add_dialog),
+            (editVar, self.open_edit_dialog),
+            (delVar, self.open_delete_dialog),
+            (self.hideVar, self.toggle_show_hide),
+            (settingVar, self.open_settings_dialog),
         )
         self.buttons = []
-        for text, cmd in button_specs:
+        for var, cmd in button_specs:
             b = tk.Button(
-                btn_frame, text=text, command=cmd, width=12,
+                btn_frame, textvariable=var, command=cmd, width=12,
                 **config.button_style(self.colors),
             )
             b.pack(side="left", padx=4, pady=(0, 20), expand=True)
@@ -98,6 +103,11 @@ class App:
         root.bind("a", self.open_add_dialog)
         root.bind("e", self.open_edit_dialog)
         root.bind("d", self.open_delete_dialog)
+
+        # Tree movement
+        self.tree.bind("<j>", lambda e: self._move_selection(1))
+        self.tree.bind("<k>", lambda e: self._move_selection(-1))
+        self.tree.bind("<y>", self._on_yank)
 
     def _apply_treeview_style(self):
         c = self.colors
@@ -184,16 +194,38 @@ class App:
         self.root.after(ms, lambda: self.status_var.set("") if self.status_var.get() == text else None)
 
     # ------------------------------------------------------------------ #
+    # Tree Movement
+    # ------------------------------------------------------------------ #
+    def _move_selection(self, direction):
+        children = self.tree.get_children()
+        if not children:
+            return "break"
+
+        current = self.tree.selection()
+        if not current:
+            next_item = children[0]
+        else:
+            idx = children.index(current[0])
+            #next_item = children[(idx + direction) % len(children)]  # wraps at both ends
+            # no loops on J and K
+            next_item = children[max(0, min(len(children)-1, idx+direction))]
+
+        self.tree.selection_set(next_item)
+        self.tree.focus(next_item)
+        self.tree.see(next_item)  # auto-scrolls if the row is off-screen
+        return "break"
+
+    # ------------------------------------------------------------------ #
     # Hide / Show
     # ------------------------------------------------------------------ #
     def toggle_show_hide(self, event=None):
         self.show_passwords = not self.show_passwords
+        self.hideVar.set("Hide" if self.show_passwords else "Show")
         self.refresh_tree()
 
     # ------------------------------------------------------------------ #
     # On copy
     # ------------------------------------------------------------------ #
-
     def _on_double_click(self, event):
         row_id = self.tree.identify_row(event.y)
         col_id = self.tree.identify_column(event.x)  # "#1", "#2", "#3"
@@ -206,16 +238,14 @@ class App:
             return
 
         value = self.entries[row_id].get(field, "")
-        print(value)
         self.root.clipboard_clear()
         self.root.clipboard_append(value)
         self._flash_status(f"Copied {field} to clipboard.")
 
-    def _on_yank(self, event):
-        row_id = self.tree.identify_row(event.y)
-        if not row_id or row_id not in self.entries: return
+    def _on_yank(self, event=None):
+        id = self.tree.selection()
 
-        value = self.entries[row_id].get("password", "")
+        value = self.entries[id[0]].get("password", "")
         self.root.clipboard_clear()
         self.root.clipboard_append(value)
         self._flash_status(f"Copied password to clipboard.")
@@ -284,7 +314,7 @@ class App:
             **config.button_style(c),
         ).grid(row=2, column=2, sticky="w")
 
-        def generate():
+        def generate(event=None):
             pwd_var.set(generatePwd())
             if pwd_shown["state"]:
                 pwd_entry.config(show="")
@@ -334,7 +364,9 @@ class App:
         for entry in (service_box, email_entry, pwd_entry):
             entry.bind("<Return>", lambda e: next_focus(e))
 
-        win.bind("<Return>", submit)
+        win.bind("<Control-g>", generate)
+        win.bind("<Control-s>", submit)
+        win.bind("<Control-e>", toggle_pwd_visible)
         win.bind("<Escape>", cancel)  # Escape returns without saving, per readme
         service_box.focus()
 
@@ -505,6 +537,6 @@ class App:
             row=7, column=0, columnspan=3, pady=14
         )
 
-        win.bind("<Return>", save)
+        win.bind("<Control-s>", save)
         win.bind("<Escape>", cancel)  # Escape returns back without saving
 

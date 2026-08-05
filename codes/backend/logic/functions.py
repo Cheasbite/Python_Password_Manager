@@ -16,7 +16,7 @@ class Functionality:
 
     def add_pwd(self, service, email, password, entry_id=None):
         passwords = self.pwdConfig.load_passwords()
-        entry_id = entry_id or str(uuid.uuid4())
+        entry_id = entry_id or str(uuid.uuid7())
         passwords[entry_id] = {
             "service": service,
             "email": email,
@@ -34,3 +34,4 @@ class Functionality:
     def delete_many(self, entry_ids):
         for entry_id in entry_ids:
             self.pwdConfig.del_passwords(entry_id)
+
