@@ -88,8 +88,7 @@ class Auth:
 
         prompt.bind("<Return>", submit)
         prompt.bind("<Escape>", cancel)
-        prompt.bind("<Control-s>", show_or_hide)
-        prompt.bind("<Control-S>", show_or_hide)
+        prompt.bind("<Control-e>", show_or_hide)
 
         # Prevent closing the prompt without a correct password (the X button
         # quits the whole app rather than leaving it half-open)
@@ -210,8 +209,7 @@ class Auth:
 
         prompt.bind("<Return>", submit)
         prompt.bind("<Escape>", cancel)
-        prompt.bind("<Control-s>", show_or_hide)
-        prompt.bind("<Control-S>", show_or_hide)
+        prompt.bind("<Control-e>", show_or_hide)
 
         prompt.protocol("WM_DELETE_WINDOW", cancel)
 
