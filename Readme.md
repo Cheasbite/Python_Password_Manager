@@ -7,7 +7,7 @@ pip install cryptography
 ```
 
 > [!Note]
-> You may need to install extra dependencies depending on your python version. \n
+> You may need to install extra dependencies depending on your python version. <br />
 > It is recommended that you have a python version >= 3.10
 
 ## Run the program
@@ -16,11 +16,11 @@ python3 main.py # Depends on where your path is but run it in main.py
 ```
 
 ## First run
-You will be prompted to enter a master password afterward this password will be used to decrypt
+____You will be prompted to enter a master password afterward this password will be used to decrypt
 your credentials in the next run.
 
 > [!Important]
-> You $\color{red}{MUST}$ remember your master password!
+> You $\color{red}{MUST}$ remember your master password! <br />
 > You will be locked out and there is no way to change it!
 
 ## Keybinds
