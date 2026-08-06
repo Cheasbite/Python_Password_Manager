@@ -1,5 +1,5 @@
 # Chease's Password Manager
-    A simple python password manager built using tkinter.
+A simple python password manager built using tkinter.
 
 ## Dependencies:
 ```bash
@@ -7,7 +7,7 @@ pip install cryptography
 ```
 
 > [!Note]
-> You may need to install extra extensions depending on your python version.
+> You may need to install extra dependencies depending on your python version. \n
 > It is recommended that you have a python version >= 3.10
 
 ## Run the program
@@ -16,8 +16,8 @@ python3 main.py # Depends on where your path is but run it in main.py
 ```
 
 ## First run
-    You will be prompted to enter a master password afterward this password will be used to decrypt \n
-    your credentials in the next run.
+You will be prompted to enter a master password afterward this password will be used to decrypt
+your credentials in the next run.
 
 > [!Important]
 > You $\color{red}{MUST}$ remember your master password!
