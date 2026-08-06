@@ -63,16 +63,41 @@ class Auth:
         error_label = tk.Label(prompt, text="", fg=self.colors["error_fg"], bg=self.colors["bg"])
         error_label.pack()
 
+        def _upgrade_iterations_if_needed(entered):
+            try:
+                if ALLOW_LOWER_ITERATION:
+                    pwd2key().generate_salt()
+                    new_fernet = pwd2key().derive_key(entered)
+                    Decryption().encrypt(DATA_FILE, DATA_ENC, new_fernet)  # re-encrypt NOW, not at exit
+                    self.fernet = new_fernet
+                    raise Exception("ALLOW_LOWER_ITERATION was set to true!")
+
+                _, iteration = pwd2key().load_salt()
+                if iteration >= PBKDF2HMAC_iterations:
+                    print(f"\033[93mPBKDF2HMAC_iterations is lower than current iteration={iteration}! Enable ALLOW_LOWER_ITERATION to lower the iteration!\033[00m" if iteration > PBKDF2HMAC_iterations else "")
+                    return  # already current (or higher -- never downgrade)
+
+                pwd2key().generate_salt()
+                new_fernet = pwd2key().derive_key(entered)
+                Decryption().encrypt(DATA_FILE, DATA_ENC, new_fernet)  # re-encrypt NOW, not at exit
+                self.fernet = new_fernet
+            except Exception as e:
+                print(f"\033[93m{e}\033[00m")
+                pass  # best-effort; vault stays perfectly usable at its current iteration count
+
         def submit(event=None):
             entered = pwd_entry.get()
             try:
                 self.fernet = pwd2key().derive_key(entered)
                 Decryption().decrypt(DATA_FILE, DATA_ENC, self.fernet)
-                prompt.destroy()
             except Exception:
                 self.fernet = None
                 error_label.config(text="Incorrect password, try again.", font=self.custom_font)
                 pwd_entry.delete(0, tk.END)
+
+            prompt.destroy()
+            # Lower the timing window of when writing the new iteration!
+            _upgrade_iterations_if_needed(entered)
 
         def cancel(event=None):
             # Escape here quits the app entirely -- there is nothing "behind"
