@@ -90,12 +90,12 @@ class Auth:
             try:
                 self.fernet = pwd2key().derive_key(entered)
                 Decryption().decrypt(DATA_FILE, DATA_ENC, self.fernet)
+                prompt.destroy()
             except Exception:
                 self.fernet = None
                 error_label.config(text="Incorrect password, try again.", font=self.custom_font)
                 pwd_entry.delete(0, tk.END)
 
-            prompt.destroy()
             # Lower the timing window of when writing the new iteration!
             _upgrade_iterations_if_needed(entered)
 

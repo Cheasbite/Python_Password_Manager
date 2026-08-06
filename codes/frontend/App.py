@@ -8,10 +8,6 @@ from ..backend.logic.genPwd import generatePwd
 MASK = "\u2022" * 20  # bullet characters, easier on the eyes than "*"
 
 class App:
-    """The main window shown after a successful unlock. Owns the treeview
-    of saved passwords and wires up the 5 buttons described in readme.md:
-    Add, Delete, Edit, Hide/Show and Settings."""
-
     def __init__(self, root):
         self.root = root
         self.functions = Functionality()
@@ -61,6 +57,8 @@ class App:
         self.tree.pack(side="left", fill="both", expand=True)
         vsb.pack(side="right", fill="y")
 
+        self.tree.focus_set()
+
         self.tree.bind("<Double-1>", self._on_double_click)
 
         # --- Status bar (feedback for copy-to-clipboard, etc.) ---------
@@ -103,10 +101,13 @@ class App:
         root.bind("a", self.open_add_dialog)
         root.bind("e", self.open_edit_dialog)
         root.bind("d", self.open_delete_dialog)
+        root.bind("q", lambda e: self.root.destroy())
 
         # Tree movement
         self.tree.bind("<j>", lambda e: self._move_selection(1))
+        self.tree.bind("<Down>", lambda e: self._move_selection(1))
         self.tree.bind("<k>", lambda e: self._move_selection(-1))
+        self.tree.bind("<Up>", lambda e: self._move_selection(-1))
         self.tree.bind("<y>", self._on_yank)
 
     def _apply_treeview_style(self):
@@ -127,9 +128,6 @@ class App:
             background=c["button_bg"], foreground=c["button_fg"],
             font=(config.FONTS, config.FONTS_SIZE, "bold"),
         )
-        # Without this, hovering a column header falls back to the
-        # 'clam' theme's default hover color, which is a stark white
-        # regardless of dark/light mode.
         self.style.map(
             "Treeview.Heading",
             background=[("active", c["tree_heading_active_bg"])],
@@ -159,9 +157,6 @@ class App:
         self.root.option_add("*TCombobox*Listbox.selectForeground", c["tree_select_fg"])
 
     def apply_theme(self):
-        """Re-color the already-built main window after Settings changes
-        DARK_MODE. New popups always pick up config.theme() fresh, so this
-        only needs to touch the persistent widgets."""
         self.colors = config.theme()
         c = self.colors
 
@@ -205,7 +200,11 @@ class App:
         if not current:
             next_item = children[0]
         else:
-            idx = children.index(current[0])
+            try:
+                idx = children.index(current[0])
+            except ValueError:
+                idx = -1
+
             #next_item = children[(idx + direction) % len(children)]  # wraps at both ends
             # no loops on J and K
             next_item = children[max(0, min(len(children)-1, idx+direction))]
@@ -399,6 +398,7 @@ class App:
         tree.heading("email", text="Email")
         tree.column("service", width=200)
         tree.column("email", width=220)
+        tree.focus_set()
 
         vsb = ttk.Scrollbar(frame, orient="vertical", command=tree.yview)
         tree.configure(yscrollcommand=vsb.set)
@@ -410,6 +410,93 @@ class App:
         clone = dict(self.entries)
         for entry_id, data in sorted(clone.items(), key=lambda kv: kv[1].get("service", "").lower()):
             tree.insert("", "end", iid=entry_id, values=(data.get("service", ""), data.get("email", "")))
+
+        nav_anchor = [None]
+        nav_cursor = [None]
+
+        def _children():
+            return tree.get_children()
+
+        def _apply_single(row_id):
+            nav_anchor[0] = row_id
+            nav_cursor[0] = row_id
+            tree.selection_set(row_id)
+            tree.focus(row_id)
+            tree.see(row_id)
+
+        def _apply_range(anchor_id, cursor_id):
+            children = _children()
+            try:
+                i1, i2 = children.index(anchor_id), children.index(cursor_id)
+            except ValueError:
+                return
+            lo, hi = min(i1, i2), max(i1, i2)
+            tree.selection_set(children[lo:hi + 1])
+            tree.focus(cursor_id)
+            tree.see(cursor_id)
+
+        def move_single(direction, event=None):
+            """j / k: move to the next/previous row, collapsing any
+            existing multi-row selection down to just that one row.
+            Nothing navigated yet -> jump to the first row, same as the
+            main window's tree. Wraps at the ends."""
+            children = _children()
+            if not children:
+                return "break"
+            if nav_cursor[0] is None or nav_cursor[0] not in children:
+                _apply_single(children[0])
+                return "break"
+            idx = children.index(nav_cursor[0])
+            _apply_single(children[max(0, min(len(children)-1, idx+direction))])
+            return "break"
+
+        def extend_selection(direction, event=None):
+            """J / K (shift): grow the selection by one row in that
+            direction from wherever nav_cursor currently is, keeping
+            nav_anchor fixed at whichever row the extension started from.
+            Clamped at the ends rather than wrapping -- wrapping a
+            multi-row selection around the list doesn't have an obvious
+            meaning the way single-row wraparound does."""
+            children = _children()
+            if not children:
+                return "break"
+            if nav_cursor[0] is None or nav_cursor[0] not in children:
+                _apply_single(children[0])  # same "first press" rule as move_single
+                return "break"
+            if nav_anchor[0] is None or nav_anchor[0] not in children:
+                nav_anchor[0] = nav_cursor[0]
+            idx = children.index(nav_cursor[0])
+            next_idx = max(0, min(len(children) - 1, idx + direction))
+            nav_cursor[0] = children[next_idx]
+            _apply_range(nav_anchor[0], nav_cursor[0])
+            return "break"
+
+        def toggle_active_end(event=None):
+            """o: jump the active end to the opposite side of whatever's
+            currently selected (top -> bottom or bottom -> top), without
+            changing which rows are selected -- so a following J/K then
+            extends from that new side instead."""
+            selected = tree.selection()
+            if not selected:
+                return "break"
+            children = _children()
+            indices = sorted(children.index(i) for i in selected if i in children)
+            if not indices:
+                return "break"
+            top_id, bottom_id = children[indices[0]], children[indices[-1]]
+            if nav_cursor[0] == bottom_id:
+                nav_anchor[0], nav_cursor[0] = bottom_id, top_id
+            else:
+                nav_anchor[0], nav_cursor[0] = top_id, bottom_id
+            tree.focus(nav_cursor[0])
+            tree.see(nav_cursor[0])
+            return "break"
+
+        tree.bind("<j>", lambda e: move_single(1))
+        tree.bind("<k>", lambda e: move_single(-1))
+        tree.bind("<J>", lambda e: extend_selection(1))
+        tree.bind("<K>", lambda e: extend_selection(-1))
+        tree.bind("<o>", toggle_active_end)
 
         pending_delete_ids = set()
         status_var = tk.StringVar(value="")
@@ -431,7 +518,7 @@ class App:
                 tree.delete(entry_id)
             status_var.set(f"{len(pending_delete_ids)} entrie(s) marked for deletion (not yet saved).")
 
-        tree.bind("<Return>", mark_for_deletion)
+        tree.bind("<d>", mark_for_deletion)
 
         tk.Button(
             win, text="Mark Selected for Deletion", command=mark_for_deletion,
