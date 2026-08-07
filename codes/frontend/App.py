@@ -494,9 +494,16 @@ class App:
 
         tree.bind("<j>", lambda e: move_single(1))
         tree.bind("<k>", lambda e: move_single(-1))
+        tree.bind("<Down>", lambda e: move_single(1))
+        tree.bind("<Up>", lambda e: move_single(-1))
+
         tree.bind("<J>", lambda e: extend_selection(1))
         tree.bind("<K>", lambda e: extend_selection(-1))
+        tree.bind("<Shift-Down>", lambda e: extend_selection(1))
+        tree.bind("<Shift-Up>", lambda e: extend_selection(-1))
+
         tree.bind("<o>", toggle_active_end)
+        tree.bind("<O>", toggle_active_end)
 
         pending_delete_ids = set()
         status_var = tk.StringVar(value="")
@@ -510,7 +517,7 @@ class App:
             names = ", ".join(clone[i].get("service", i) for i in selected)
             if not messagebox.askyesno(
                 "Confirm", f"Mark {len(selected)} entrie(s) for deletion?\n({names})\n\n"
-                           "They will only be removed for good once you click Save."
+                           "They will only be removed for good once you click Save.", parent=win
             ):
                 return
             for entry_id in selected:
