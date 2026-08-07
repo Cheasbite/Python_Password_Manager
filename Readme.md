@@ -1,5 +1,6 @@
 # Chease's Password Manager
-A simple python password manager built using tkinter.
+A simple python password manager built using tkinter <br />
+with the focus on using the keyboard only to navigate around the app.
 
 ## Dependencies:
 ```bash
@@ -12,11 +13,13 @@ pip install cryptography
 
 ## Run the program
 ```bash
+git clone https://github.com/Cheasbite/Python_Password_Manager.git
+cd Python_Password_Manager
 python3 main.py # Depends on where your path is but run it in main.py
 ```
 
 ## First run
-____You will be prompted to enter a master password afterward this password will be used to decrypt
+    You will be prompted to enter a master password afterward this password will be used to decrypt
 your credentials in the next run.
 
 > [!Important]
@@ -54,12 +57,16 @@ your credentials in the next run.
 |q| Quits the program|
 |y| Yank the password|
 
+> [!Tip]
+> Arrow keys (Up and Down) can also be used to move around the tree <br />
+> instead of J and K.
 
 ### Add Button & Edit Button
 
 |Keybind|Function|
 |----|----|
 |Enter| Move to the next box|
+|Control + e|Hide/Show password|
 |Control + s|Save|
 |Control + g|Generate password|
 
@@ -79,6 +86,8 @@ your credentials in the next run.
 |Enter| Confirm or Refuses (Use Tab to switch)|
 |Control + s| Save|
 
+> [!Tip]
+> You can also use the arrow key too for this.
 
 ### Setting Button
 
@@ -86,4 +95,28 @@ your credentials in the next run.
 |----|----|
 |Control + s|Save|
 
+## Recommendations
+    It is recommended that you use something that directly binds one of your key <br />
+to run this automatically. On windows, you may use [AutoHotkey](https://www.autohotkey.com/) to achieve this <br />
+by letting it run on startup.
+    Don't forget to continuosly change the iterations overtime. You can change it in the <br />
+codes/config.py in the section security section on this part:
+```python
+# Security
+# Reference for the amount of iterations should be used:
+# https://github.com/cudocharles/OWASP-CheatSheetSeries/blob/master/cheatsheets/Password_Storage_Cheat_Sheet.md#pbkdf2
+ALLOW_LOWER_ITERATION = False   # If set to true, you can lower the PBKDF2HMAC_iterations (not recommended)
+osUrandomSize = 16              # How many bytes should the os generate (chunk size is not recommended)
+PBKDF2HMAC_Lenght = 32          # How long should the encryption length be
+PBKDF2HMAC_iterations = 600000  # How many time should the encryption be hash
+```
+> [!Note]
+> Your master will be fine after iteration changes, it will be the same regardless. <br />
+> However, please do it when you are in the situation to be able to do so such as <br />
+> having good % remaining on the battery, not in a performance bottleneck, etc.... <br />
+> You may be locked out of your own app!
+
+## Compatability
+    It should be able to run on both Linux and Window (MacOS is not tested). <br />
+However, I can't guarantee that it will work smoothly.
 

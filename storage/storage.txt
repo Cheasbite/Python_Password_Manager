@@ -1,2 +1,3 @@
 The place where all the encryption keys will be stored and read.
+This is just a dummy text file so that git won't remove this folder.
 
